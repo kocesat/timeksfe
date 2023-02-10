@@ -4,6 +4,7 @@ import {useGetAllIssuesQuery} from '../store'
 import AppSpinner from "../components/AppSpinner";
 import AppDataTable from "../components/AppDataTable";
 import IssueDTO from "../models/issueDTO";
+import { IssueStatusColor } from '../enums/IssueStatusColor';
 
 const Issue = () => {
   const { data, error, isLoading } = useGetAllIssuesQuery({});
@@ -21,9 +22,16 @@ const Issue = () => {
     {
       key: 'statusText',
       header: 'Status',
-      renderCell: (row: IssueDTO) => <Badge colorScheme={row.statusCode === 0 ? "yellow" : "teal"}>{row.statusText}</Badge>
+      renderCell: (row: IssueDTO) => <Badge colorScheme={resolveColor(row.statusCode)}>{row.statusText}</Badge>
     },
   ]
+
+  const resolveColor = (statusCode: number): string => {
+    const status = 
+      (Object.keys(IssueStatusColor) as Array<keyof typeof IssueStatusColor>)
+        .find(key => IssueStatusColor[key].code === statusCode);
+    return IssueStatusColor[status ?? 'TODO'].color;
+  }
 
   const createIssueTable = () => (
     <AppDataTable

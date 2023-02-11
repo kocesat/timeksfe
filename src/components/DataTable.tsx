@@ -1,85 +1,97 @@
-import * as React from "react";
-import { Table, Thead, Tbody, Tr, Th, Td, chakra } from "@chakra-ui/react";
-import { TriangleDownIcon, TriangleUpIcon } from "@chakra-ui/icons";
-import {
-    useReactTable,
-    flexRender,
-    getCoreRowModel,
-    ColumnDef,
-    SortingState,
-    getSortedRowModel
-} from "@tanstack/react-table";
+import React, {ReactNode} from "react";
+import {Box, Center, Spinner, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
+import AppSpinner from "./AppSpinner";
 
-export type DataTableProps<Data extends object> = {
-    data: Data[];
-    columns: ColumnDef<Data, any>[];
+interface Column<T> {
+  key: string;
+  header: string;
+  sortable?: boolean;
+  filterable?: boolean;
+  isNumeric?: boolean;
+  renderCell?: (row: T) => React.ReactNode;
+}
+
+interface Props<T> {
+  data: T[];
+  striped?: Nullable<boolean>;
+  caption?: Nullable<string>;
+  noRecordMessage?: Nullable<string>;
+  columns: Column<T>[];
+  isLoading?: boolean;
+  tableSize?: 'sm' | 'md' | 'lg';
+}
+
+const AppDataTable = <T extends unknown>({
+  data, striped, caption, columns, noRecordMessage,
+  tableSize, isLoading
+ }: Props<T>) => {
+  let variant: string = 'simple';
+  if (striped) {
+    variant = 'striped';
+  }
+
+  const renderTable = () => {
+    return (
+      <TableContainer>
+        <Table variant={variant} size={tableSize ?? 'md'}>
+        <TableCaption placement='top'>{caption ?? ''}</TableCaption>
+        <Thead>
+          <Tr>
+            {columns.map(col => {
+              return <Th key={col.key}>{col.header}</Th>
+            })}
+          </Tr>
+        </Thead>
+        <Tbody>
+          {data.length === 0 && (
+            <Tr>
+              <Td>{noRecordMessage}</Td>
+            </Tr>
+          )}
+          {!!data && data.map((row: any, index) => {
+            return (
+              <Tr key={row.key}>
+                {columns.map(col => {
+                  let cell: ReactNode = row[col.key];
+                  if (!!col.renderCell) {
+                    cell = col.renderCell(row);
+                  }
+                  return (
+                    <Td key={col.key + index} isNumeric={col.isNumeric ?? false}>{cell}</Td>
+                  )
+                })}
+              </Tr>
+            )
+          })}
+        </Tbody>
+        <Thead>
+          <Tr>
+            {columns.map(col => {
+              return <Th key={col.key}>{col.header}</Th>
+            })}
+          </Tr>
+        </Thead>
+      </Table>
+    </TableContainer>
+    );
+  }
+
+  return (
+    <React.Fragment>
+      {isLoading && (
+        <Center height='50vh' borderWidth='1px' borderRadius='lg'>
+          <Spinner
+            thickness='4px'
+            speed='0.45s'
+            emptyColor='gray.200'
+            color='teal'
+            size='xl'
+          />
+        </Center>
+      )}
+      {!isLoading && renderTable()}
+    </React.Fragment>
+  );
 };
 
-export function DataTable<Data extends object>({
-                                                   data,
-                                                   columns
-                                               }: DataTableProps<Data>) {
-    const [sorting, setSorting] = React.useState<SortingState>([]);
-    const table = useReactTable({
-        columns,
-        data,
-        getCoreRowModel: getCoreRowModel(),
-        onSortingChange: setSorting,
-        getSortedRowModel: getSortedRowModel(),
-        state: {
-            sorting
-        }
-    });
-
-    return (
-        <Table>
-            <Thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                    <Tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                            // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-                            const meta: any = header.column.columnDef.meta;
-                            return (
-                                <Th
-                                    key={header.id}
-                                    onClick={header.column.getToggleSortingHandler()}
-                                    isNumeric={meta?.isNumeric}
-                                >
-                                    {flexRender(
-                                        header.column.columnDef.header,
-                                        header.getContext()
-                                    )}
-
-                                    <chakra.span pl="4">
-                                        {header.column.getIsSorted() ? (
-                                            header.column.getIsSorted() === "desc" ? (
-                                                <TriangleDownIcon aria-label="sorted descending" />
-                                            ) : (
-                                                <TriangleUpIcon aria-label="sorted ascending" />
-                                            )
-                                        ) : null}
-                                    </chakra.span>
-                                </Th>
-                            );
-                        })}
-                    </Tr>
-                ))}
-            </Thead>
-            <Tbody>
-                {table.getRowModel().rows.map((row) => (
-                    <Tr key={row.id}>
-                        {row.getVisibleCells().map((cell) => {
-                            // see https://tanstack.com/table/v8/docs/api/core/column-def#meta to type this correctly
-                            const meta: any = cell.column.columnDef.meta;
-                            return (
-                                <Td key={cell.id} isNumeric={meta?.isNumeric}>
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </Td>
-                            );
-                        })}
-                    </Tr>
-                ))}
-            </Tbody>
-        </Table>
-    );
-}
+export default AppDataTable;

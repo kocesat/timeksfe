@@ -1,17 +1,13 @@
-import { Container, Card, CardBody } from '@chakra-ui/react'
+import { Box, Center } from '@chakra-ui/react'
 import React from 'react';
 import Issue from './Issue';
 
 const Dashboard = () => {
   return (
     <div>
-      <Container centerContent>
-        <Card>
-          <CardBody>
-            <Issue />
-          </CardBody>
-        </Card>
-      </Container>
+      <Box overflowX='auto' maxWidth='100%'>
+        <Issue />
+      </Box>
     </div>
   )
 }

@@ -1,13 +1,13 @@
 import React from 'react'
-import {Badge, Box,} from '@chakra-ui/react'
+import {Badge, Box, Button, Center,} from '@chakra-ui/react'
 import {useGetAllIssuesQuery} from '../store'
 import AppSpinner from "../components/AppSpinner";
-import AppDataTable from "../components/AppDataTable";
+import AppDataTable from "../components/DataTable";
 import IssueDTO from "../models/issueDTO";
 import { IssueStatusColor } from '../enums/IssueStatusColor';
 
 const Issue = () => {
-  const { data, error, isLoading } = useGetAllIssuesQuery({});
+  const { data, error, isFetching, refetch } = useGetAllIssuesQuery({});
 
   const columns = [
     {
@@ -27,10 +27,10 @@ const Issue = () => {
   ]
 
   const resolveColor = (statusCode: number): string => {
-    const status = 
+    const statusKey = 
       (Object.keys(IssueStatusColor) as Array<keyof typeof IssueStatusColor>)
         .find(key => IssueStatusColor[key].code === statusCode);
-    return IssueStatusColor[status ?? 'TODO'].color;
+    return IssueStatusColor[statusKey ?? 'TODO'].color;
   }
 
   const createIssueTable = () => (
@@ -39,19 +39,22 @@ const Issue = () => {
       columns={columns}
       caption="Issues Table"
       noRecordMessage="We found nothing"
+      isLoading={isFetching}
     />
   );
   
   return (
-    <div>
+    <React.Fragment>
+      <Center>
+        <Button onClick={() => refetch()}>Refetch</Button>
+      </Center>
       {!!error && (
         <Box>An error occured</Box>
       )}
-      {isLoading && !error && <AppSpinner /> }
-      {data && !error && !isLoading && (
+      {data && !error && (
         createIssueTable()
       )}
-    </div>
+    </React.Fragment>
   )
 }
 

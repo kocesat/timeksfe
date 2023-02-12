@@ -1,10 +1,9 @@
 import React from 'react'
 import {Badge, Box, Button, Center,} from '@chakra-ui/react'
 import {useGetAllIssuesQuery} from '../store'
-import AppSpinner from "../components/AppSpinner";
 import AppDataTable from "../components/DataTable";
 import IssueDTO from "../models/issueDTO";
-import { IssueStatusColor } from '../enums/IssueStatusColor';
+import { resolveColor } from '../utils/issueUtil';
 
 const Issue = () => {
   const { data, error, isFetching, refetch } = useGetAllIssuesQuery({});
@@ -25,13 +24,6 @@ const Issue = () => {
       renderCell: (row: IssueDTO) => <Badge colorScheme={resolveColor(row.statusCode)}>{row.statusText}</Badge>
     },
   ]
-
-  const resolveColor = (statusCode: number): string => {
-    const statusKey = 
-      (Object.keys(IssueStatusColor) as Array<keyof typeof IssueStatusColor>)
-        .find(key => IssueStatusColor[key].code === statusCode);
-    return IssueStatusColor[statusKey ?? 'TODO'].color;
-  }
 
   const createIssueTable = () => (
     <AppDataTable
